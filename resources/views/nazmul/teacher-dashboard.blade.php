@@ -17,6 +17,10 @@
           <a class="btn btn-sm btn-outline-primary" href="{{ route('result-histories.index') }}">Result History</a>
           <a class="btn btn-sm btn-outline-danger" href="{{ route('teacher.enrollments.index') }}">Drop From Course</a>
         </div>
+        <form method="post" action="{{ route('teacher.logout') }}" class="mt-3">
+          @csrf
+          <button class="btn btn-sm btn-outline-danger">Logout</button>
+        </form>
       </div>
     </div>
   </div>
