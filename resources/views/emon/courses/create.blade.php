@@ -1,27 +1,29 @@
 @extends('layouts.app')
 @section('content')
 <div class="card">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="bi bi-book me-2 text-primary"></i>Add Course</h5>
+  </div>
   <div class="card-body">
-    <h1 class="h5 mb-3">Add Course</h1>
     <form method="post" action="{{ route('courses.store') }}">
       @csrf
-      <div class="row">
-        <div class="col-md-4 mb-2">
+      <div class="row g-3">
+        <div class="col-md-4">
           <label class="form-label">Course Code</label>
-          <input name="course_code" class="form-control" value="{{ old('course_code') }}" required>
+          <input name="course_code" class="form-control" value="{{ old('course_code') }}" placeholder="e.g., CSE101" required>
           @error('course_code')<div class="text-danger small">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-8 mb-2">
+        <div class="col-md-8">
           <label class="form-label">Course Title</label>
-          <input name="course_title" class="form-control" value="{{ old('course_title') }}" required>
+          <input name="course_title" class="form-control" value="{{ old('course_title') }}" placeholder="e.g., Data Structures" required>
           @error('course_title')<div class="text-danger small">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-4 mb-2">
+        <div class="col-md-4">
           <label class="form-label">Credit Hours</label>
           <input type="number" name="credit_hours" class="form-control" min="1" max="6" value="{{ old('credit_hours') }}" required>
           @error('credit_hours')<div class="text-danger small">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-4 mb-2">
+        <div class="col-md-4">
           <label class="form-label">Department</label>
           <select name="department_id" class="form-select" required>
             <option value="">Select department</option>
@@ -31,7 +33,7 @@
           </select>
           @error('department_id')<div class="text-danger small">{{ $message }}</div>@enderror
         </div>
-        <div class="col-md-4 mb-2">
+        <div class="col-md-4">
           <label class="form-label">Assign Teacher</label>
           <select name="teacher_id" class="form-select" required>
             <option value="">Select teacher</option>
@@ -42,8 +44,8 @@
           @error('teacher_id')<div class="text-danger small">{{ $message }}</div>@enderror
         </div>
       </div>
-      <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-primary">Save</button>
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Course</button>
         <a class="btn btn-outline-secondary" href="{{ route('courses.index') }}">Cancel</a>
       </div>
     </form>
