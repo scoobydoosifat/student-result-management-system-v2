@@ -67,7 +67,7 @@
                 <div class="card stat-card" style="background: var(--success-soft);">
                     <div class="d-flex align-items-center gap-3">
                         <div class="stat-icon" style="background: white; color: var(--success);"><i class="bi bi-people"></i></div>
-                        <div><div class="text-muted small">Total Enrollments</div><div class="h4 mb-0 fw-bold">{{ array_sum(array_column($courseStats, 'enrollment_count')) }}</div></div>
+                        <div><div class="text-muted small">Total Enrollments</div><div class="h4 mb-0 fw-bold">{{ $courseStats->sum('enrollment_count') }}</div></div>
                     </div>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                 <div class="card stat-card" style="background: var(--purple-soft);">
                     <div class="d-flex align-items-center gap-3">
                         <div class="stat-icon" style="background: white; color: var(--purple);"><i class="bi bi-clipboard-check"></i></div>
-                        <div><div class="text-muted small">Results Published</div><div class="h4 mb-0 fw-bold">{{ array_sum(array_column($courseStats, 'results_published')) }}</div></div>
+                        <div><div class="text-muted small">Results Published</div><div class="h4 mb-0 fw-bold">{{ $courseStats->sum('results_published') }}</div></div>
                     </div>
                 </div>
             </div>
