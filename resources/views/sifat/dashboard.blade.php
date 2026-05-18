@@ -32,6 +32,9 @@
                 <div class="profile-item"><span>Semester</span><span>{{ $student->semester?->semester_name }}</span></div>
                 <div class="profile-item"><span>Email</span><span>{{ $student->email }}</span></div>
                 <div class="profile-item"><span>Phone</span><span>{{ $student->phone }}</span></div>
+                <div class="mt-3">
+                    <a href="{{ route('student.profile') }}" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-pencil-square me-1"></i>Edit Profile</a>
+                </div>
             </div>
         </div>
         <div class="card mt-3">

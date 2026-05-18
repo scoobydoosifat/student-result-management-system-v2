@@ -24,6 +24,9 @@
         <div class="d-flex justify-content-between py-2"><span>Email</span><strong>{{ $teacher->email }}</strong></div>
         <div class="d-flex justify-content-between py-2"><span>Phone</span><strong>{{ $teacher->phone }}</strong></div>
       </div>
+      <div class="mt-3">
+        <a href="{{ route('teacher.profile') }}" class="btn btn-light w-100"><i class="bi bi-pencil-square me-1"></i>Edit Profile</a>
+      </div>
       <div class="mt-4">
         <p class="small opacity-75 mb-3">Quick Actions</p>
         <div class="d-flex flex-column gap-2">

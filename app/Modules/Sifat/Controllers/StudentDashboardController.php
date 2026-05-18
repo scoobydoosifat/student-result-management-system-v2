@@ -9,9 +9,50 @@ use App\Models\Semester;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
 
 class StudentDashboardController extends Controller
 {
+    public function profile()
+    {
+        $studentId = session('student_id');
+        $student = Student::with(['department', 'semester', 'login'])->findOrFail($studentId);
+        return view('sifat.profile', compact('student'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $studentId = session('student_id');
+        $student = Student::findOrFail($studentId);
+
+        $data = $request->validate([
+            'full_name' => 'required|string',
+            'email' => 'required|email|unique:students,email,' . $student->id,
+            'phone' => 'required|string|unique:students,phone,' . $student->id,
+        ]);
+
+        $student->update($data);
+        return back()->with('status', 'Profile updated successfully!');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $studentId = session('student_id');
+        $studentLogin = \App\Models\StudentLogin::where('student_id', $studentId)->first();
+
+        $data = $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        if (!Hash::check($data['current_password'], $studentLogin->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect']);
+        }
+
+        $studentLogin->update(['password' => Hash::make($data['new_password'])]);
+        return back()->with('status', 'Password changed successfully!');
+    }
+
     public function index(Request $request)
     {
         $studentId = session('student_id');

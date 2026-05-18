@@ -43,6 +43,9 @@ Route::post('/teacher/login', [TeacherAuthController::class, 'loginTeacher'])->n
 
 Route::middleware('student')->group(function () {
     Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+    Route::get('/student/profile', [StudentDashboardController::class, 'profile'])->name('student.profile');
+    Route::put('/student/profile', [StudentDashboardController::class, 'updateProfile'])->name('student.profile.update');
+    Route::put('/student/password', [StudentDashboardController::class, 'changePassword'])->name('student.password.update');
     Route::get('/student/transcript/{semesterId}', [TranscriptController::class, 'download'])->name('student.transcript');
     Route::post('/student/logout', [StudentAuthController::class, 'logout'])->name('student.logout');
 });
@@ -63,6 +66,9 @@ Route::middleware('coordinator')->group(function () {
 
 Route::middleware('teacher')->group(function () {
     Route::get('/teacher/dashboard', [TeacherDashboardController::class, 'teacherIndex'])->name('teacher.dashboard');
+    Route::get('/teacher/profile', [TeacherDashboardController::class, 'profile'])->name('teacher.profile');
+    Route::put('/teacher/profile', [TeacherDashboardController::class, 'updateProfile'])->name('teacher.profile.update');
+    Route::put('/teacher/password', [TeacherDashboardController::class, 'changePassword'])->name('teacher.password.update');
     Route::post('/teacher/logout', [TeacherAuthController::class, 'logout'])->name('teacher.logout');
 
     Route::resource('/results', ResultController::class)->except(['show']);
