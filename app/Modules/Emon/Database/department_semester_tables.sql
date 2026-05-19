@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS courses (
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
     FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT ON UPDATE CASCADE
-);
+); --Prevent deleting a department if courses depend on it. -- department ID changes, update related courses -- 
 
 INSERT INTO courses (course_code, course_title, credit_hours, department_id, teacher_id, created_at, updated_at) VALUES
 ('CSE-101', 'Introduction to Computer Science', 3, 1, 1, NOW(), NOW()),
@@ -97,6 +97,7 @@ INSERT INTO courses (course_code, course_title, credit_hours, department_id, tea
 UPDATE courses SET credit_hours = 3 WHERE department_id = 1;
 DELETE FROM courses WHERE id = 5;
 
+--Show every course, its code, title, credit hours, and which department it belongs to.
 SELECT c.course_code, c.course_title, c.credit_hours, d.department_name
 FROM courses c
 JOIN departments d ON c.department_id = d.id
