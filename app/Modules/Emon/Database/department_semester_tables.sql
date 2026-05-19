@@ -61,6 +61,8 @@ SELECT department_name,
        (SELECT COUNT(*) FROM teachers WHERE department_id = departments.id) as teacher_count
 FROM departments;
 
+-- For every semester, how many unique students enrolled and how many unique courses were taken?
+
 SELECT 
     sem.semester_name,
     COUNT(DISTINCT e.student_id) as total_students,
