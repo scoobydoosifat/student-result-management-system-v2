@@ -1,889 +1,543 @@
-# SIFAT IBNE MAZIB — Student Module Documentation
+# Contribution Details - Sifat Ibne Mazib
 
-**Student Result Management System (SRMS)**
-**Developer:** Sifat Ibne Mazib (Group Leader)
+## Project: Student Result Management System (SRMS)
 **Student ID:** 2023200000068
-**Branch:** `sifat`
-**Commit:** `d0bcb85` — *"Add Sifat module files"*
+**Role:** Group Leader & Backend/Frontend Developer
 
 ---
 
-# Table of Contents
+# Database Relationships - How My Tables Connect to All Other Tables
 
-1. [Role & Responsibilities](#1-role--responsibilities)
-2. [Module Overview](#2-module-overview)
-3. [Technical Contributions](#3-technical-contributions)
-4. [File Structure](#4-file-structure)
-5. [Controllers & Backend Logic](#5-controllers--backend-logic)
-6. [Frontend Views](#6-frontend-views)
-7. [Database Design](#7-database-design)
-8. [System Workflow](#8-system-workflow)
-9. [Key Features Implemented](#9-key-features-implemented)
-10. [Code Location Summary](#10-code-location-summary)
+## 1. My Tables Overview
 
----
+I designed two main database tables for the Student Module:
 
-# 1. Role & Responsibilities
-
-As the **Group Leader** of this project, Sifat was responsible for both technical implementation and project coordination. The Student Module is one of the most critical parts of SRMS as it provides the main interface for students to view their academic performance.
-
-| Responsibility | Description |
-|---------------|-------------|
-| **Student Authentication** | Login/logout system with secure session management |
-| **Student Dashboard** | Display GPA, semester results, and enrollment data |
-| **Profile Management** | Allow students to update personal information |
-| **Password Management** | Secure password change with verification |
-| **Result Filtering** | Search/filter results by course, semester, or grade |
-| **GPA Calculation** | Dynamic GPA calculation using credit hours and grade points |
-| **Project Coordination** | Led the team, integrated all modules, managed project structure |
-| **Database Design** | Designed student and student_login tables with proper relationships |
-
----
-
-# 2. Module Overview
-
-Sifat's module provides the student-facing functionality of SRMS. Students can log in, view their dashboard with grades and GPA, filter their results, and manage their profile.
+### Table 1: students
+This is the primary table storing all student information.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        SIFAT MODULE                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   ┌─────────────────────┐    ┌─────────────────────────────┐    │
-│   │  StudentAuth        │    │  StudentDashboard          │    │
-│   │  Controller         │    │  Controller                 │    │
-│   │  - login            │    │  - index (dashboard)        │    │
-│   │  - logout           │    │  - profile                  │    │
-│   │  - showLoginForm    │    │  - updateProfile            │    │
-│   └──────────┬──────────┘    │  - changePassword           │    │
-│              │                │  - calculateGPA             │    │
-│              │                │  - applyFilters             │    │
-│              ▼                └──────────────┬──────────────┘    │
-│   ┌─────────────────────┐                   │                   │
-│   │  student-login      │                   ▼                   │
-│   │  (View)             │    ┌─────────────────────────────────┐ │
-│   └─────────────────────┘    │         Dashboard Views         │ │
-│                              │  - dashboard.blade.php          │ │
-│                              │  - profile.blade.php           │ │
-│                              └─────────────────────────────────┘ │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+students table
+│
+├── id (Primary Key) - Auto increment
+├── student_id (UNIQUE) - Student's unique ID like "S-24001"
+├── full_name - Student's full name
+├── email (UNIQUE) - Student's email address
+├── phone (UNIQUE) - Contact number
+├── batch - Batch year like "2024"
+├── enrollment_date - When the student enrolled
+├── password - Hashed password for security
+├── department_id (Foreign Key) ──────► departments(id)
+├── semester_id (Foreign Key) ─────────► semesters(id)
+├── created_at
+└── updated_at
 ```
+
+### Table 2: student_logins
+This table handles student authentication, kept separate for security.
+
+```
+student_logins table
+│
+├── id (Primary Key)
+├── student_id (Foreign Key) ──────────► students(id)
+│         │                            ON DELETE CASCADE
+│         │                            ON UPDATE CASCADE
+├── username (UNIQUE) - Same as student_id
+├── password (bcrypt hashed)
+├── created_at
+└── updated_at
+```
+
+**Why separate student_logins table?**
+- Security: If student account is deleted, login is automatically deleted
+- Isolation: Passwords are separated from personal information
+- No accidental exposure of password hashes
 
 ---
 
-# 3. Technical Contributions
+## 2. Complete Database Relationship Diagram
 
-## 3.1 Controllers Built
-
-| Controller | File | Lines | Methods |
-|------------|------|-------|---------|
-| `StudentAuthController` | `app/Modules/Sifat/Controllers/StudentAuthController.php` | 46 | showLoginForm, login, logout |
-| `StudentDashboardController` | `app/Modules/Sifat/Controllers/StudentDashboardController.php` | 155 | index, profile, updateProfile, changePassword, applyFilters, buildSemesterStats, calculateGpa |
-
-## 3.2 Views Built
-
-| View | Purpose |
-|------|---------|
-| `resources/views/sifat/student-login.blade.php` | Student login form with validation |
-| `resources/views/sifat/dashboard.blade.php` | Main dashboard with GPA, semester results, search filters |
-| `resources/views/sifat/profile.blade.php` | Profile edit and password change forms |
-
-## 3.3 Database Files
-
-| File | Purpose |
-|------|---------|
-| `database/migrations/2026_01_01_000003_create_students_table.php` | Students table migration (shared) |
-| `database/migrations/2026_01_01_000009_create_student_logins_table.php` | Student logins table migration (shared) |
-| `database/seeders/DatabaseSeeder.php` | Dynamic data population with students, enrollments, results |
-| `app/Modules/Sifat/Database/students_tables.sql` | Standalone SQL schema with seed data |
-| `app/Modules/Sifat/Queries/student_queries.sql` | SQL query examples for student data |
-
-## 3.4 Shared Models Used
-
-| Model | Usage in Sifat's Module |
-|-------|------------------------|
-| `App\Models\Student` | Fetch student data with department/semester relationships |
-| `App\Models\StudentLogin` | Authentication and session management |
-| `App\Models\Department` | Display student's department in dashboard |
-| `App\Models\Semester` | Display current semester and filter options |
-| `App\Models\Enrollment` | Fetch all enrollments with course/result relationships |
-| `App\Models\Course` | Display enrolled courses and filter by course code |
-| `App\Models\Result` | Display marks, grades, and grade points |
-
----
-
-# 4. File Structure
+This diagram shows how ALL tables in the project connect together, including my tables:
 
 ```
-📁 app/Modules/Sifat/
-├── 📁 Controllers/
-│   ├── StudentAuthController.php
-│   └── StudentDashboardController.php
-├── 📁 Database/
-│   └── students_tables.sql
-├── 📁 Documentation/
-│   └── README.md
-└── 📁 Queries/
-    └── student_queries.sql
-
-📁 resources/views/sifat/
-├── student-login.blade.php
-├── dashboard.blade.php
-└── profile.blade.php
-
-📁 database/
-├── migrations/
-│   ├── 2026_01_01_000003_create_students_table.php
-│   └── 2026_01_01_000009_create_student_logins_table.php
-└── seeders/
-    └── DatabaseSeeder.php (handles student data seeding)
+                                    ┌──────────────────────────────────┐
+                                    │         EMON'S TABLES            │
+                                    │   (Departments, Semesters,     │
+                                    │         Courses)                │
+                                    └──────────────┬───────────────────┘
+                                                   │
+                    ┌──────────────────────────────┼──────────────────────┐
+                    │                              │                      │
+                    ▼                              ▼                      ▼
+        ┌───────────────────┐        ┌───────────────────┐    ┌───────────────────┐
+        │    departments    │        │    semesters      │    │     courses       │
+        ├───────────────────┤        ├───────────────────┤    ├───────────────────┤
+        │ id (PK) ◄─────────┼────────│ id (PK) ◄─────────┼────│ id (PK)           │
+        │ department_name   │        │ semester_name     │    │ course_code       │
+        └─────────┬─────────┘        └─────────┬─────────┘    │ course_title      │
+                  │                            │               │ credit_hours      │
+                  │                            │               │ department_id FK──┼──►
+                  │                            │               │ teacher_id FK─────┼──►
+                  │                            │               └─────────┬─────────┘
+                  │                            │                         │
+                  │                            │                         │
+                  ▼                            ▼                         ▼
+        ┌───────────────────┐        ┌───────────────────┐    ┌───────────────────┐
+        │    teachers       │        │    students       │    │   SIFAT'S TABLES  │
+        │  (Nazmul's)       │        │   (MY TABLE)      │    │                    │
+        ├───────────────────┤        ├───────────────────┤    │  ┌─────────────┐  │
+        │ id (PK)           │◄───────│ id (PK)           │    │  │ students   │  │
+        │ teacher_id        │        │ student_id (UK)  │    │  ├─────────────┤  │
+        │ full_name         │        │ full_name        │    │  │ id (PK)    │  │
+        │ department_id FK──┼────────│ email (UK)       │    │  │ student_id │  │
+        │ ...               │        │ phone (UK)       │    │  │ full_name  │  │
+        └───────────────────┘        │ department_id FK─┼────┤  │ email      │  │
+                                      │ semester_id FK───┼────┤  │ phone      │  │
+                                      └────────┬─────────┘    │  │ batch      │  │
+                                               │              │  │ dept_id FK─┼───►departments
+                                               │              │  │ sem_id FK──┼───►semesters
+                                               │              │  └───────────┘  │
+                                               │              │                │
+                                               │              │  ┌─────────────┐  │
+                                               │              │  │student_logins│ │
+                                               │              │  ├─────────────┤  │
+                                               │              │  │ id (PK)     │  │
+                                               │              │  │student_id FK┴──►students
+                                               │              │  │ username    │  │
+                                               │              │  │ password    │  │
+                                               │              │  └─────────────┘  │
+                                               │              └────────────────────┘
+                                               │
+                                               ▼
+                                ┌────────────────────────────────┐
+                                │       OISHY'S TABLES          │
+                                │   (Enrollments, Results)       │
+                                └──────────────┬─────────────────┘
+                                               │
+                    ┌───────────────────────────┼───────────────────────────┐
+                    │                           │                           │
+                    ▼                           ▼                           ▼
+        ┌───────────────────┐        ┌───────────────────┐    ┌───────────────────┐
+        │   enrollments     │        │    results        │    │ result_histories  │
+        ├───────────────────┤        ├───────────────────┤    │   (Mithila's)     │
+        │ id (PK)           │◄───────│ enrollment_id(FK) │    ├───────────────────┤
+        │ student_id FK─────┼────────│ id (PK)           │    │ id (PK)           │
+        │ course_id FK──────┼───────►│ mid_marks         │    │ old_enrollment_id │
+        │ semester_id FK─────┼────────│ final_marks       │    │ old_result_id     │
+        │ enrollment_date   │        │ assignment_marks  │    │ ...               │
+        └─────────┬─────────┘        │ attendance_marks  │    └───────────────────┘
+                  │                  │ total_marks       │
+                  │                  │ letter_grade      │
+                  │                  │ grade_point       │
+                  │                  │ gpa               │
+                  │                  └───────────────────┘
+                  │
+                  └──────────────────► NAZMUL'S TABLES (teacher_logins)
+                                     (linked via teachers → courses)
 ```
 
 ---
 
-# 5. Controllers & Backend Logic
+## 3. Detailed Table-by-Table Relationships
 
-## 5.1 StudentAuthController
+### 3.1 My students table → Emon's tables
 
-The `StudentAuthController` handles student authentication with secure password hashing and session management.
-
-```php
-// Password verification using Laravel's Hash facade
-if (!$login || !Hash::check($credentials['password'], $login->password)) {
-    return back()->withErrors(['username' => 'Invalid credentials'])->withInput();
-}
-
-// Session creation for authenticated student
-session([
-    'student_id' => $login->student_id,
-    'student_name' => $login->student?->full_name,
-]);
-```
-
-**Route names defined:** `student.login`, `student.login.submit`, `student.logout`
-
-### Methods Breakdown
-
-| Method | HTTP Verb | URI | Description |
-|--------|-----------|-----|-------------|
-| `showLoginForm()` | GET | `/student/login` | Display login form |
-| `login()` | POST | `/student/login` | Authenticate student |
-| `logout()` | POST | `/student/logout` | Clear session and logout |
-
-### Workflow
+#### students → departments (Many-to-One)
 
 ```
-Student → GET /student/login
-       │
-       ├─> Display login form (username/password)
-       │
-       └─> POST /student/login
-             ├─> Validate: username & password required
-             ├─> Query StudentLogin table with username
-             ├─> Verify password using Hash::check()
-             ├─> Success → Create session → Redirect to dashboard
-             └─> Failure → Return with error message
+students                         departments
+┌─────────────────┐            ┌─────────────────┐
+│ id: 1            │            │ id: 1           │
+│ student_id: S-01│            │ department_name │
+│ full_name: Sifat│──FK───────►│ : CSE           │
+│ department_id: 1│            └─────────────────┘
+└─────────────────┘
 ```
 
----
-
-## 5.2 StudentDashboardController
-
-The `StudentDashboardController` is the core of the student module. It provides the dashboard view, profile management, password change, and GPA calculation.
-
-### Key Implementation Details
-
-1. **Session-based Authentication**: Uses `session('student_id')` to identify the logged-in student
-2. **Eager Loading**: Uses `Student::with(['department', 'semester', 'login'])` to prevent N+1 queries
-3. **Dynamic GPA Calculation**: Calculates GPA using credit hours and grade points from related tables
-4. **Advanced Filtering**: Filter results by course code, semester, or letter grade
-5. **Semester-wise Statistics**: Groups enrollments by semester with individual GPA
-
-### Methods Breakdown
-
-| Method | HTTP Verb | URI | Description |
-|--------|-----------|-----|-------------|
-| `index()` | GET | `/student/dashboard` | Main dashboard with all data |
-| `profile()` | GET | `/student/profile` | View profile page |
-| `updateProfile()` | PUT | `/student/profile` | Update name, email, phone |
-| `changePassword()` | PUT | `/student/password` | Change password with verification |
-
-### GPA Calculation Logic
-
-```php
-private function calculateGpa(Collection $enrollments): ?float
-{
-    $totalCredits = 0;
-    $totalPoints = 0.0;
-
-    foreach ($enrollments as $enrollment) {
-        if (!$enrollment->course || !$enrollment->result) {
-            continue;
-        }
-
-        $credits = (int) $enrollment->course->credit_hours;
-        $totalCredits += $credits;
-        $totalPoints += $enrollment->result->grade_point * $credits;
-    }
-
-    if ($totalCredits === 0) {
-        return null;
-    }
-
-    return round($totalPoints / $totalCredits, 2);
-}
-```
-
-### Filter Application Logic
-
-```php
-private function applyFilters($query, Request $request)
-{
-    // Filter by course code (partial match)
-    if ($request->filled('course_code')) {
-        $query->whereHas('course', function ($builder) use ($request) {
-            $builder->where('course_code', 'like', '%' . $request->course_code . '%');
-        });
-    }
-
-    // Filter by semester
-    if ($request->filled('semester_id')) {
-        $query->where('semester_id', $request->semester_id);
-    }
-
-    // Filter by letter grade
-    if ($request->filled('letter_grade')) {
-        $query->whereHas('result', function ($builder) use ($request) {
-            $builder->where('letter_grade', $request->letter_grade);
-        });
-    }
-
-    return $query;
-}
-```
-
-### Profile Update Validation
-
-```php
-$data = $request->validate([
-    'full_name' => 'required|string',
-    'email' => 'required|email|unique:students,email,' . $student->id,
-    'phone' => 'required|string|unique:students,phone,' . $student->id,
-]);
-```
-
-### Password Change Validation
-
-```php
-$data = $request->validate([
-    'current_password' => 'required',
-    'new_password' => 'required|min:6|confirmed',
-]);
-
-// Verify current password before allowing change
-if (!Hash::check($data['current_password'], $studentLogin->password)) {
-    return back()->withErrors(['current_password' => 'Current password is incorrect']);
-}
-```
-
----
-
-# 6. Frontend Views
-
-## 6.1 Design Principles
-
-- **Consistent Layout**: All views extend `layouts.app` (Bootstrap 5 base)
-- **Modern UI**: Gradient profile headers, color-coded grade badges
-- **Responsive Design**: Works on desktop and mobile
-- **Form Validation**: Client-side HTML5 + Laravel server-side validation
-- **Interactive Filters**: Search results by course code, semester, or grade
-- **Visual Feedback**: Success/error messages, loading states
-
-## 6.2 student-login.blade.php
-
-```
-┌─────────────────────────────────────────────┐
-│              STUDENT LOGIN                   │
-│  ┌─────────────────────────────────────────┐│
-│  │         👤                               ││
-│  │    Student Login                        ││
-│  │  Access your dashboard and transcript  ││
-│  │  history.                               ││
-│  ├─────────────────────────────────────────┤│
-│  │  Username:  [S-24001          ] 👤      ││
-│  │  Password:  [************    ] 🔒       ││
-│  │  [Login]                                 ││
-│  │  Demo: username S-24001, password       ││
-│  └─────────────────────────────────────────┘│
-└─────────────────────────────────────────────┘
-```
-
-## 6.3 dashboard.blade.php
-
-The dashboard has two main sections:
-
-### Left Column - Profile Card
-```
-┌─────────────────────────────────┐
-│  👤 Sifat Mazib                 │
-│     S-24001                    │
-│  ┌───────────────────────────┐  │
-│  │ Department: CSE           │  │
-│  │ Semester: Spring 2025     │  │
-│  │ Email: sifat@uni.edu.bd   │  │
-│  │ Phone: 01720000001        │  │
-│  │ Overall GPA: 3.75         │  │
-│  │ [Edit Profile]            │  │
-│  └───────────────────────────┘  │
-│  [Logout]                        │
-└─────────────────────────────────┘
-```
-
-### Right Column - Results
-
-**Semester Results Table:**
-```
-┌─────────────────────────────────────────────────────┐
-│  Semester Results                        [Download]│
-│  ─────────────────────────────────────────────────│
-│  Semester      │ GPA       │ Transcript            │
-│  ─────────────────────────────────────────────────│
-│  Spring 2025   │ 3.75      │ [Download]            │
-│  Summer 2025   │ 3.50      │ [Download]            │
-│  Fall 2025     │ 3.25      │ [Download]            │
-└─────────────────────────────────────────────────────┘
-```
-
-**Search/Filter Section:**
-```
-┌─────────────────────────────────────────────────────┐
-│  Search Results                                     │
-│  Course: [CSE101 ▼]  Semester: [All ▼]  Grade: [All ▼]
-│  [Search] [Reset]                                   │
-├─────────────────────────────────────────────────────┤
-│  Course    │ Semester  │ Marks │ Grade │ Point    │
-│  ──────────────────────────────────────────────────│
-│  CSE101    │ Sp 2025   │ 84    │  A    │ 4.00     │
-│  CSE201    │ Sp 2025   │ 76    │  B+   │ 3.25     │
-│  CSE301    │ Su 2025   │ 71    │  A-   │ 3.50     │
-└─────────────────────────────────────────────────────┘
-```
-
-**Grade Color Coding:**
-| Grade | Color | Background |
-|-------|-------|------------|
-| A+, A, A- | Green | #d1fae5 |
-| B+, B, B- | Blue | #dbeafe |
-| C+, C | Orange | #fed7aa |
-| D | Yellow | #fef3c7 |
-| F | Red | #fee2e2 |
-
-## 6.4 profile.blade.php
-
-```
-┌─────────────────────────────────────────────────────┐
-│  UPDATE PROFILE                    CHANGE PASSWORD │
-│  ─────────────────────────────────────────────────  │
-│  Student ID: S-24001 [disabled]                    │
-│  Full Name:  [Sifat Mazib          ]                │
-│  Email:      [sifat@uni.edu.bd     ]                │
-│  Phone:      [01720000001           ]                │
-│  Department: CSE [disabled]                         │
-│  Semester:   Spring 2025 [disabled]                │
-│  [Save Changes] [Cancel]                           │
-│                                                      │
-│  Current Password: [************]                  │
-│  New Password:    [************]                  │
-│  Confirm:         [************]                  │
-│  [Change Password]                                 │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-# 7. Database Design
-
-## 7.1 Entity Relationship Diagram - Sifat's Tables
-
-```
-┌─────────────────────┐       ┌─────────────────────┐
-│     departments     │       │     semesters      │
-│   (Emon's Module)   │       │   (Emon's Module)  │
-├─────────────────────┤       ├─────────────────────┤
-│ id (PK)             │       │ id (PK)             │
-│ department_name     │       │ semester_name       │
-└──────────┬──────────┘       └──────────┬──────────┘
-           │                              │
-           │    ┌─────────────────┐      │
-           └────►     students     ◄─────┘
-                  ├─────────────────┤
-                  │ id (PK)         │
-                  │ student_id (UK) │
-                  │ full_name       │
-                  │ email (UK)      │
-                  │ phone (UK)      │
-                  │ batch           │
-                  │ enrollment_date │
-                  │ password        │
-                  │ department_id FK│──────────┐
-                  │ semester_id FK  │          │
-                  │ created_at      │          │
-                  │ updated_at      │          │
-                  └────────┬────────┘          │
-                           │                   │
-                  ┌────────▼────────┐          │
-                  │  student_logins │          │
-                  │  (My Table)     │          │
-                  ├─────────────────┤          │
-                  │ id (PK)         │          │
-                  │ student_id (FK) │──────────┘
-                  │ username (UK)   │
-                  │ password        │
-                  │ created_at      │
-                  │ updated_at      │
-                  └─────────────────┘
-```
-
-## 7.2 Complete System Database - All Team Members' Tables
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        COMPLETE DATABASE STRUCTURE                          │
-│                        (All Team Members' Work)                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  EMON'S TABLES (Foundation):                                               │
-│  ┌───────────────────┐    ┌───────────────────┐    ┌───────────────────┐  │
-│  │   departments     │    │   semesters       │    │    courses        │  │
-│  ├───────────────────┤    ├───────────────────┤    ├───────────────────┤  │
-│  │ id (PK)           │    │ id (PK)           │    │ id (PK)           │  │
-│  │ department_name   │    │ semester_name     │    │ course_code       │  │
-│  └─────────┬─────────┘    └─────────┬─────────┘    │ course_title      │  │
-│            │                       │              │ credit_hours     │  │
-│            │                       │              │ department_id FK │──┘
-│            │                       │              │ teacher_id FK    │──┐
-│            ▼                       ▼              └───────────────────┘  │
-│  ┌───────────────────┐    ┌───────────────────┐                        │
-│  │   teachers        │    │    students       │                        │
-│  │ (Nazmul's Module) │    │  (Sifat's Module) │                        │
-│  ├───────────────────┤    ├───────────────────┤                        │
-│  │ id (PK)           │    │ id (PK)           │◄──┐                    │
-│  │ teacher_id        │    │ student_id (UK)   │   │                    │
-│  │ full_name         │    │ full_name         │   │                    │
-│  │ department_id FK  │───►│ email (UK)        │   │                    │
-│  │ ...               │    │ phone (UK)        │   │                    │
-│  └───────────────────┘    │ department_id FK  │◄──┘                    │
-│                           │ semester_id FK    │◄──┘                    │
-│                           └─────────┬─────────┘                        │
-│                                     │                                   │
-│                           ┌─────────▼─────────┐                        │
-│                           │  student_logins   │                        │
-│                           │  (Sifat's Module) │                        │
-│                           ├───────────────────┤                        │
-│                           │ id (PK)           │                        │
-│                           │ student_id (FK)───┼───┐                    │
-│                           │ username (UK)     │   │                    │
-│                           │ password           │   │                    │
-│                           └───────────────────┘   │                    │
-│                                                     │                    │
-│  NAZMUL'S TABLES:                                    │                    │
-│  ┌───────────────────┐                             │                    │
-│  │  teacher_logins   │                             │                    │
-│  ├───────────────────┤                             │                    │
-│  │ id (PK)           │                             │                    │
-│  │ teacher_id (FK)───┘                            │                    │
-│  │ username (UK)     │                             │                    │
-│  │ password          │                             │                    │
-│  └───────────────────┘                             │                    │
-│                                                     │                    │
-│  OISHY'S TABLES:                                     │                    │
-│  ┌───────────────────┐                             │                    │
-│  │  enrollments      │◄────────────────────────────┘                    │
-│  ├───────────────────┤                                                  │
-│  │ id (PK)           │                                                  │
-│  │ student_id (FK)───┼─────────────┐                                    │
-│  │ course_id (FK)────┼───────────┐ │                                    │
-│  │ semester_id (FK)──┼───────┐   │                                    │
-│  │ enrollment_date   │       │   │                                    │
-│  └─────────┬─────────┘       │   │                                    │
-│            │                 │   │                                    │
-│            └────────┬────────┘   │                                    │
-│                     ▼            ▼                                    │
-│  ┌───────────────────┐    ┌───────────────────┐                        │
-│  │    results        │    │ result_histories │                        │
-│  │  (Oishy's Module) │    │ (Mithila's Module)│                        │
-│  ├───────────────────┤    ├───────────────────┤                        │
-│  │ id (PK)           │    │ id (PK)           │                        │
-│  │ enrollment_id (FK)┴───►│ old_enrollment_id │                        │
-│  │ mid_marks         │    │ old_result_id     │                        │
-│  │ final_marks       │    │ ...              │                        │
-│  │ assignment_marks  │    └───────────────────┘                        │
-│  │ attendance_marks  │                                                 │
-│  │ total_marks       │                                                 │
-│  │ letter_grade      │                                                 │
-│  │ grade_point       │                                                 │
-│  │ gpa               │                                                 │
-│  └───────────────────┘                                                 │
-│                                                                             │
-│  All connected through FOREIGN KEYS                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-## 7.3 Schema Definitions
-
-### students (Sifat's Table)
-
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | BIGINT UNSIGNED | PK, AUTO_INCREMENT |
-| student_id | VARCHAR(255) | NOT NULL, UNIQUE |
-| full_name | VARCHAR(255) | NOT NULL |
-| email | VARCHAR(255) | NOT NULL, UNIQUE |
-| phone | VARCHAR(20) | NOT NULL, UNIQUE |
-| batch | VARCHAR(50) | NOT NULL |
-| enrollment_date | DATE | NOT NULL |
-| password | VARCHAR(255) | NOT NULL |
-| department_id | BIGINT UNSIGNED | FK → departments.id, RESTRICT ON DELETE, CASCADE ON UPDATE |
-| semester_id | BIGINT UNSIGNED | FK → semesters.id, RESTRICT ON DELETE, CASCADE ON UPDATE |
-| created_at | TIMESTAMP | NULLABLE |
-| updated_at | TIMESTAMP | NULLABLE |
-
-**Indexes:** student_id, department_id, semester_id
-
-### student_logins (Sifat's Table)
-
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | BIGINT UNSIGNED | PK, AUTO_INCREMENT |
-| student_id | BIGINT UNSIGNED | FK → students.id, CASCADE ON DELETE, CASCADE ON UPDATE |
-| username | VARCHAR(255) | NOT NULL, UNIQUE |
-| password | VARCHAR(255) | NOT NULL (hashed) |
-| created_at | TIMESTAMP | NULLABLE |
-| updated_at | TIMESTAMP | NULLABLE |
-
-## 7.4 Key Design Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| **Separate student_logins table** | Security - passwords stored separately from student data |
-| **UNIQUE on student_id** | Each student has unique ID |
-| **UNIQUE on email & phone** | Prevent duplicate contact info |
-| **RESTRICT ON DELETE** | Can't delete department/semester with students |
-| **CASCADE ON UPDATE** | If department ID changes, student records update automatically |
-| **Hashed passwords** | bcrypt hashing for security (never store plain text) |
-| **Session-based auth** | Simple, stateless authentication |
-
-## 7.5 Seed Data
-
-The DatabaseSeeder.php dynamically creates sample data:
-
-### Students (4 records)
-
-| ID | Student ID | Name | Email | Department | Semester |
-|----|------------|------|-------|------------|----------|
-| 1 | S-24001 | Sifat Mazib | sifat.mazib@uni.edu.bd | CSE | Spring 2025 |
-| 2 | S-24002 | Tanvir Ahmed | tanvir.ahmed@uni.edu.bd | CSE | Spring 2025 |
-| 3 | S-24003 | Samiha Rahman | samiha.rahman@uni.edu.bd | EEE | Summer 2025 |
-| 4 | S-24004 | Nusrat Jahan | nusrat.jahan@uni.edu.bd | BBA | Fall 2025 |
-
-### Student Logins (4 records)
-
-| ID | Username | Password (hashed) |
-|----|----------|-------------------|
-| 1 | S-24001 | bcrypt(password) |
-| 2 | S-24002 | bcrypt(password) |
-| 3 | S-24003 | bcrypt(password) |
-| 4 | S-24004 | bcrypt(password) |
-
-## 7.6 Analytical Queries
-
+**SQL Query:**
 ```sql
--- Student information with department
 SELECT s.student_id, s.full_name, d.department_name
 FROM students s
 INNER JOIN departments d ON s.department_id = d.id
-WHERE s.student_id = '2023200000068';
+WHERE s.student_id = 'S-24001';
 
--- Student GPA calculation query
+-- Result:
+-- S-24001 | Sifat Ibne Mazib | Computer Science & Engineering
+```
+
+**Explanation:** Each student belongs to ONE department. The department_id in students table points to the id in departments table.
+
+- **Foreign Key:** `department_id` in students references `id` in departments
+- **Constraint:** RESTRICT ON DELETE (cannot delete department if students exist)
+- **Constraint:** CASCADE ON UPDATE (if department id changes, student records update automatically)
+
+#### students → semesters (Many-to-One)
+
+```
+students                         semesters
+┌─────────────────┐            ┌─────────────────┐
+│ id: 1            │            │ id: 1           │
+│ student_id: S-01│            │ semester_name   │
+│ full_name: Sifat│──FK───────►│ : Spring 2025   │
+│ semester_id: 1   │            └─────────────────┘
+└─────────────────┘
+```
+
+**SQL Query:**
+```sql
+SELECT s.full_name, s.student_id, sem.semester_name
+FROM students s
+INNER JOIN semesters sem ON s.semester_id = sem.id;
+```
+
+**Explanation:** Each student is assigned to ONE current semester (the semester they are currently studying in).
+
+- **Foreign Key:** `semester_id` in students references `id` in semesters
+
+---
+
+### 3.2 My student_logins table → My students table
+
+#### student_logins → students (One-to-One)
+
+```
+student_logins                   students
+┌─────────────────┐            ┌─────────────────┐
+│ id: 1           │            │ id: 1           │
+│ student_id: 1   │◄───FK──────│ student_id: S-01│
+│ username: S-24001│           │ full_name: Sifat│
+│ password: $2y... │            └─────────────────┘
+└─────────────────┘
+```
+
+**SQL Query:**
+```sql
+SELECT sl.username, s.full_name, s.email
+FROM student_logins sl
+INNER JOIN students s ON sl.student_id = s.id
+WHERE sl.username = 'S-24001';
+```
+
+**Explanation:** Each student has exactly ONE login credential. The student_id in student_logins links to the id in students.
+
+- **Foreign Key:** `student_id` in student_logins references `id` in students
+- **ON DELETE CASCADE:** If student is deleted, login is automatically deleted
+- **ON UPDATE CASCADE:** If student id changes, login updates automatically
+
+---
+
+### 3.3 My tables → Oishy's tables (via relationships)
+
+#### students → enrollments → results (One-to-Many-to-One)
+
+```
+students              enrollments                 results
+┌─────────┐          ┌─────────────┐              ┌──────────┐
+│ id: 1    │◄──FK────│ student_id  │◄───FK───────│enrollment│
+│ S-24001  │          │ = 1         │              │ _id: 1   │
+└─────────┘          │ course_id   │              │ A        │
+                     │ semester_id │              │ 4.00     │
+                     └─────────────┘              └──────────┘
+```
+
+**SQL Query - Get all results for a student:**
+```sql
 SELECT 
     s.student_id,
     s.full_name,
-    SUM(c.credit_hours) as total_credits,
-    SUM(r.grade_point * c.credit_hours) / SUM(c.credit_hours) as gpa
+    c.course_code,
+    c.course_title,
+    c.credit_hours,
+    r.letter_grade,
+    r.grade_point
 FROM students s
 INNER JOIN enrollments e ON s.id = e.student_id
 INNER JOIN courses c ON e.course_id = c.id
 INNER JOIN results r ON e.id = r.enrollment_id
-GROUP BY s.id, s.student_id, s.full_name;
-
--- Students per department
-SELECT d.department_name, COUNT(s.id) as student_count
-FROM departments d
-LEFT JOIN students s ON d.id = s.department_id
-GROUP BY d.department_name;
+WHERE s.student_id = 'S-24001'
+ORDER BY c.course_code;
 ```
 
-## 7.7 How Sifat's Tables Connect to All Other Team Members' Tables
+**Explanation:**
+1. One student can have MANY enrollments (one per course per semester)
+2. Each enrollment has ONE result (the grade for that course)
+3. The chain is: students → enrollments → results
 
-### My Tables → Emon's Tables:
-
-| My Table | Emon's Table | Relationship |
-|----------|--------------|--------------|
-| students | departments | Many-to-One (FK: department_id) |
-| students | semesters | Many-to-One (FK: semester_id) |
-| courses (via enrollments) | departments | Many-to-One |
-
-### My Tables → Nazmul's Tables:
-
-| My Table | Nazmul's Table | Relationship |
-|----------|----------------|---------------|
-| students | teachers | Both belong to departments |
-
-### My Tables → Oishy's Tables:
-
-| My Table | Oishy's Table | Relationship |
-|----------|---------------|--------------|
-| students | enrollments | One-to-Many (one student can have many enrollments) |
-| enrollments | results | One-to-One (each enrollment has one result) |
-
-### My Tables → Mithila's Tables:
-
-| My Table | Mithila's Table | Relationship |
-|----------|-----------------|--------------|
-| results | result_histories | One-to-Many (results can be archived) |
-
----
-
-# 8. System Workflow
-
-## 8.1 Sifat's Module in the System Context
-
-The Student Module is the end-user interface. Other modules feed data that students can view:
-
+**Relationship Chain:**
 ```
-                    ┌─────────────────┐
-                    │   Emon's Module  │
-                    │ (Departments,   │
-                    │  Semesters,     │
-                    │  Courses)       │
-                    └────────┬────────┘
-                             │
-                             ▼
-┌──────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Oishy's    │────►│   Sifat's       │◄────│   Mithila's     │
-│   Module     │     │   Module        │     │   Module        │
-│ (Enrollments,│     │ (Student        │     │ (Transcript     │
-│  Results)    │     │  Dashboard)     │     │  Generation)    │
-└──────────────┘     └─────────────────┘     └─────────────────┘
-```
-
-## 8.2 Student Login Flow
-
-```
-Student → GET /student/login
-         │
-         └─> POST /student/login (credentials)
-               │
-               ├─> Find StudentLogin by username
-               ├─> Hash::check(password, stored_hash)
-               ├─> Success:
-               │     ├─> session(['student_id' => ..., 'student_name' => ...])
-               │     └─> Redirect to /student/dashboard
-               └─> Failure:
-                     └─> Return with error
-```
-
-## 8.3 Dashboard Data Flow
-
-```
-GET /student/dashboard
-     │
-     ├─> session('student_id') → Get current student
-     │
-     ├─> Student::with(['department', 'semester'])
-     │     └─> Student info with relationships
-     │
-     ├─> Enrollment::with(['course', 'semester', 'result'])
-     │     └─> All enrollments with grades
-     │
-     ├─> calculateGpa(enrollments)
-     │     └─> Loop through enrollments:
-     │         - Get credit_hours from course
-     │         - Get grade_point from result
-     │         - GPA = Σ(grade_point × credits) / Σ(credits)
-     │
-     └─> Return view with all data
-```
-
-## 8.4 Data Flow from Other Modules
-
-```
-EMON (Foundation Data):
-  departments ──► Used by students (FK)
-  semesters ────► Used by students (FK)
-  courses ─────► Used by enrollments (via Oishy)
-
-NAZMUL (Teacher Data):
-  teachers ─────► Assigned to courses
-  teacher_logins ──► Teacher authentication
-
-OISHY (Academic Data):
-  enrollments ──► Links students to courses
-  results ──────► Grades for each enrollment
-
-SIFAT (Student Interface):
-  students ────► View dashboard, profile
-  student_logins ──► Authentication
-
-MITHILA (Reporting):
-  result_histories ──► Archived results
-  transcripts ────► Generated from enrollments/results
+students (id) 
+    │
+    │ hasMany (one student → many enrollments)
+    ▼
+enrollments (student_id)
+    │
+    │ hasOne (one enrollment → one result)
+    ▼
+results (enrollment_id)
 ```
 
 ---
 
-# 9. Key Features Implemented
+### 3.4 My tables → Emon's courses table (indirectly)
 
-## 9.1 Authentication System
-
-| Feature | Status |
-|---------|--------|
-| Login form with validation | ✅ |
-| Secure password verification (bcrypt) | ✅ |
-| Session management | ✅ |
-| Logout with session cleanup | ✅ |
-| Demo credentials display | ✅ |
-| Error messages for invalid login | ✅ |
-
-## 9.2 Dashboard Features
-
-| Feature | Status |
-|---------|--------|
-| Display student profile info | ✅ |
-| Show department and semester | ✅ |
-| Display overall GPA | ✅ |
-| List all semester results | ✅ |
-| Show per-semester GPA | ✅ |
-| Color-coded grade badges | ✅ |
-| Transcript download links | ✅ |
-| Search by course code | ✅ |
-| Filter by semester | ✅ |
-| Filter by grade | ✅ |
-| Reset filters | ✅ |
-
-## 9.3 Profile Management
-
-| Feature | Status |
-|---------|--------|
-| View profile information | ✅ |
-| Edit name, email, phone | ✅ |
-| Change password with verification | ✅ |
-| Password confirmation check | ✅ |
-| Success/error messages | ✅ |
-| Read-only fields (ID, dept, semester) | ✅ |
-
-## 9.4 Data Integrity & Security
-
-| Feature | Status |
-|---------|--------|
-| Laravel validation rules | ✅ |
-| Unique constraints on email/phone/student_id | ✅ |
-| Passwords hashed with bcrypt | ✅ |
-| Foreign key constraints | ✅ |
-| Session-based authentication | ✅ |
-| CSRF protection (Laravel built-in) | ✅ |
-| SQL injection prevention (Eloquent) | ✅ |
-
-## 9.5 Project Coordination
-
-As **Group Leader**:
-- Coordinated task distribution among team members
-- Integrated all modules into the main application
-- Ensured consistent code structure and naming conventions
-- Managed database migrations and foreign key relationships
-
----
-
-# 10. Code Location Summary
+#### enrollments → courses (Many-to-One)
 
 ```
-Backend (Controllers):
-  app/Modules/Sifat/Controllers/StudentAuthController.php
-  app/Modules/Sifat/Controllers/StudentDashboardController.php
+enrollments                 courses (Emon's table)
+┌─────────────┐            ┌─────────────────┐
+│ student_id  │            │ id: 1           │
+│ course_id: 1 │──FK──────►│ course_code:    │
+│ semester_id │            │ CSE101          │
+└─────────────┘            │ course_title:   │
+                           │ Programming      │
+                           │ credit_hours: 3  │
+                           └─────────────────┘
+```
 
-Frontend (Views):
-  resources/views/sifat/student-login.blade.php
-  resources/views/sifat/dashboard.blade.php
-  resources/views/sifat/profile.blade.php
-
-Database:
-  app/Modules/Sifat/Database/students_tables.sql (Reference)
-  app/Modules/Sifat/Queries/student_queries.sql (Reference)
-  database/migrations/2026_01_01_000003_create_students_table.php
-  database/migrations/2026_01_01_000009_create_student_logins_table.php
-  database/seeders/DatabaseSeeder.php (Dynamic data)
-
-Routes (student.*):
-  student.login (GET)
-  student.login.submit (POST)
-  student.logout (POST)
-  student.dashboard (GET)
-  student.profile (GET)
-  student.profile.update (PUT)
-  student.password.update (PUT)
-
-Shared Models Used:
-  app/Models/Student.php
-  app/Models/StudentLogin.php
-  app/Models/Department.php
-  app/Models/Semester.php
-  app/Models/Enrollment.php
-  app/Models/Course.php
-  app/Models/Result.php
+**SQL Query - Get student's enrolled courses:**
+```sql
+SELECT 
+    s.full_name,
+    c.course_code,
+    c.course_title,
+    c.credit_hours
+FROM students s
+INNER JOIN enrollments e ON s.id = e.student_id
+INNER JOIN courses c ON e.course_id = c.id
+WHERE s.student_id = 'S-24001';
 ```
 
 ---
 
-# Appendix: Quick Reference
+### 3.5 Complete Data Flow Example - Student Dashboard
 
-## Validation Rules Summary
+When a student logs into their dashboard, this is the data flow through relationships:
 
-| Controller | Field | Rules |
-|------------|-------|-------|
-| StudentAuth | `username` | required |
-| StudentAuth | `password` | required |
-| StudentDashboard | `full_name` | required, string |
-| StudentDashboard | `email` | required, email, unique:students,email,{id} |
-| StudentDashboard | `phone` | required, string, unique:students,phone,{id} |
-| StudentDashboard | `current_password` | required |
-| StudentDashboard | `new_password` | required, min:6, confirmed |
-
-## Route Names
-
-| Prefix | Routes |
-|--------|--------|
-| `student.*` | login, login.submit, logout, dashboard, profile, profile.update, password.update |
-
-## Middleware Protection
-
-Student routes are protected by **StudentAuth middleware**, ensuring only logged-in students can access dashboard, profile, and password change features.
-
-## How My Tables Connect to Other Team Members
-
-| My Table | Connects To | Team Member | Connection Type |
-|----------|-------------|-------------|-----------------|
-| students | departments | Emon | Foreign Key (department_id) |
-| students | semesters | Emon | Foreign Key (semester_id) |
-| students | enrollments | Oishy | Via enrollments table (student_id FK) |
-| students | results | Oishy | Via enrollments → results chain |
-| students | courses | Emon/Oishy | Via enrollments → courses chain |
-| student_logins | students | Sifat | Foreign Key (student_id) with CASCADE |
+```
+STEP 1: Authenticate
+student_logins ──► students (via student_id)
+     │
+     ▼
+STEP 2: Get Profile
+students ──► departments (via department_id)
+students ──► semesters (via semester_id)
+     │
+     ▼
+STEP 3: Get Enrollments & Results
+students ──► enrollments (via student_id)
+     │
+     ├──► courses (via course_id) ──► departments (via department_id)
+     ├──► semesters (via semester_id)
+     └──► results (via enrollment_id)
+     │
+     ▼
+STEP 4: Calculate GPA
+For each enrollment:
+  - Get credit_hours from course
+  - Get grade_point from result
+  - GPA = Σ(grade_point × credits) / Σ(credits)
+```
 
 ---
 
-**Author:** Sifat Ibne Mazib (Group Leader)
-**Student ID:** 2023200000068
-**Branch:** `sifat`
-**Commit:** `d0bcb8541ca62018ac7c4723cdbe4c440f399258`
-**Last Updated:** May 2026
+## 4. All Foreign Key Relationships Summary
+
+| My Table | Foreign Key | References | Table Owner | Relationship Type |
+|----------|-------------|-------------|--------------|-------------------|
+| students | department_id | departments(id) | Emon | Many-to-One |
+| students | semester_id | semesters(id) | Emon | Many-to-One |
+| student_logins | student_id | students(id) | Sifat (me) | One-to-One |
+| enrollments | student_id | students(id) | Oishy | One-to-Many |
+| enrollments | course_id | courses(id) | Emon | Many-to-One |
+| enrollments | semester_id | semesters(id) | Emon | Many-to-One |
+| results | enrollment_id | enrollments(id) | Oishy | One-to-One |
+
+---
+
+## 5. How My Tables Connect to Each Team Member
+
+### My Tables → Emon's Tables (Foundation)
+
+```
+My students table
+    │
+    ├──► department_id ──► Emon's departments table
+    │
+    └──► semester_id ──► Emon's semesters table
+              │
+              └──► enrollments ──► Emon's courses table
+```
+
+**Connection:**
+- My students need departments to know which department they belong to
+- My students need semesters to know which semester they're in
+- My enrollments (through Oishy) need courses to know what courses students take
+
+### My Tables → Nazmul's Tables
+
+```
+Nazmul's teachers ──► Emon's departments (via department_id)
+                          │
+                          ▼
+                     My students (both belong to departments)
+```
+
+**Connection:**
+- Both teachers and students belong to the same department
+- Teachers are assigned to courses (which students enroll in)
+
+### My Tables → Oishy's Tables
+
+```
+My students ──► Oishy's enrollments ──► Oishy's results
+    │                    │
+    │                    └──► grade/marks for each course
+    │
+    └──► academic records
+```
+
+**Connection:**
+- Students are enrolled in courses by Oishy
+- Each enrollment gets a result (grade) from Oishy
+- My dashboard displays these results to students
+
+### My Tables → Mithila's Tables
+
+```
+Oishy's results ──► Mithila's result_histories
+                         │
+                         ▼
+                   My students' archived results
+```
+
+**Connection:**
+- When results are updated, old results go to result_histories
+- Mithila's transcripts can show current and historical results
+
+---
+
+## 6. Database Architecture - How the System Actually Works
+
+### The Three-Layer System
+
+Many students wonder: "The SQL file has static values, so how does the system work dynamically?"
+
+**Answer:**
+
+```
+LAYER 1: Laravel Migrations (PHP)
+─────────────────────────────
+Creates EMPTY tables automatically:
+- students table (no data)
+- student_logins table (no data)
+- enrollments table (no data)
+- results table (no data)
+etc.
+
+Command: php artisan migrate
+
+
+LAYER 2: Database Seeder (PHP - Dynamic!)
+─────────────────────────────
+Populates tables with sample data:
+
+Student::create([
+    'student_id' => 'S-24001',
+    'full_name' => 'Sifat Mazib',
+    'department_id' => 1,  // Links to Emon's department
+    'semester_id' => 1,    // Links to Emon's semester
+    ...
+]);
+
+Command: php artisan db:seed
+
+
+LAYER 3: Eloquent ORM (PHP - Dynamic Queries!)
+─────────────────────────────
+Fetch data without writing SQL:
+
+$student = Student::with(['department', 'semester'])
+    ->find($studentId);
+
+$enrollments = Enrollment::with(['course', 'result'])
+    ->where('student_id', $studentId)
+    ->get();
+
+This is NOT raw SQL - it's Laravel's Eloquent!
+```
+
+### Example Queries in My Code
+
+```php
+// From StudentDashboardController.php
+
+// Get student with department and semester
+$student = Student::with(['department', 'semester'])
+    ->findOrFail($session('student_id'));
+
+// Get all enrollments with course, semester, result
+$enrollments = Enrollment::with(['course', 'semester', 'result'])
+    ->where('student_id', $studentId)
+    ->get();
+
+// Filter by course code
+$enrollments->whereHas('course', function($q) use($request) {
+    $q->where('course_code', 'like', '%' . $request->course_code . '%');
+});
+
+// Calculate GPA
+foreach ($enrollments as $e) {
+    $totalCredits += $e->course->credit_hours;
+    $totalPoints += $e->result->grade_point * $e->course->credit_hours;
+}
+$gpa = $totalPoints / $totalCredits;
+```
+
+**Benefits of Eloquent ORM:**
+- No SQL injection (automatically escaped)
+- Easy relationships (belongsTo, hasMany, hasOne)
+- Readable and maintainable code
+- Works across different database systems (MySQL, PostgreSQL, etc.)
+
+---
+
+## 7. Key Points for Teacher Presentation
+
+### Question: "How does your database connect to other modules?"
+
+**Answer:**
+"My two tables (students and student_logins) connect to the entire system through foreign keys:
+
+1. **students → departments** (Emon): Every student belongs to one department
+2. **students → semesters** (Emon): Every student has a current semester
+3. **students → enrollments** (Oishy): One student can enroll in many courses
+4. **enrollments → results** (Oishy): Each enrollment has one grade
+5. **enrollments → courses** (Emon): Each enrollment links to a course
+
+The students table is the central table - all other academic data connects through it."
+
+### Question: "What makes your database properly designed?"
+
+**Answer:**
+1. **Normalization** - No duplicate data
+2. **Foreign Keys** - All relationships are defined
+3. **Unique Constraints** - No duplicate student IDs, emails, phones
+4. **Security** - Passwords are hashed and in a separate table
+5. **Referential Integrity** - Cannot delete departments with students
+
+---
+
+## Summary
+
+- **My Tables:** students, student_logins
+- **Direct Connections:** departments, semesters (via FK)
+- **Indirect Connections:** courses, teachers, enrollments, results
+- **All Team Members Connected:** Emon → Nazmul → Oishy → Mithila → Sifat
+
+This is how the entire Student Result Management System database is connected through relationships!
+
+---
+
+*Generated for academic submission*
+*Student Result Management System v2*
+*Author: Sifat Ibne Mazib*
