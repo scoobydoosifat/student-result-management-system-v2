@@ -2,22 +2,22 @@
 
 namespace App\Modules\Emon\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; #Use Laravel’s base Controller class.
 use App\Models\Course;
 use App\Models\Department;
 use App\Models\Teacher;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; #Handle user input.
 
-class CourseController extends Controller
+class CourseController extends Controller # Inherits the deafult laravels controller.
 {
-    public function index()
+    public function index() # Fetch all coursses with department and teacher id.
     {
         return view('emon.courses.index', [
             'courses' => Course::with(['department', 'teacher'])->orderBy('course_code')->get(),
         ]);
     }
 
-    public function create()
+    public function create() #Show the page where a user can add a new course.
     {
         return view('emon.courses.create', [
             'departments' => Department::orderBy('department_name')->get(),
@@ -40,7 +40,7 @@ class CourseController extends Controller
         return redirect()->route('courses.index');
     }
 
-    public function edit(Course $course)
+    public function edit(Course $course) #Show edit page
     {
         return view('emon.courses.edit', [
             'course' => $course,
@@ -49,7 +49,7 @@ class CourseController extends Controller
         ]);
     }
 
-    public function update(Request $request, Course $course)
+    public function update(Request $request, Course $course) #Save edited course
     {
         $data = $request->validate([
             'course_code' => 'required|string|unique:courses,course_code,' . $course->id,
@@ -64,7 +64,7 @@ class CourseController extends Controller
         return redirect()->route('courses.index');
     }
 
-    public function destroy(Course $course)
+    public function destroy(Course $course) # Delete a Course
     {
         $course->delete();
 
