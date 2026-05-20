@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index() # Fetch
     {
         return view('emon.departments.index', ['departments' => Department::all()]);
     }
 
-    public function create()
+    public function create()  #Show the page
     {
         return view('emon.departments.create');
     }
